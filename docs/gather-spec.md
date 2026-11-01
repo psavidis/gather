@@ -565,3 +565,7 @@ Apps Script cannot verify RS256 signatures natively. The backend sends the ID to
 ### A8 — Browser-to-backend transport (§10)
 
 The frontend calls the Apps Script web app with `POST` requests whose body is JSON sent as `text/plain`, with the ID token inside the body. This avoids a CORS preflight, which Apps Script cannot answer. Apps Script always responds with HTTP 200, so success and failure are expressed in the JSON body. This must be confirmed by the proof of concept in a real deployment.
+
+### A9 — Administrators cannot lock themselves out (§2)
+
+An administrator cannot disable, remove or remove the administrator role from their own account. Another administrator must do it. This guarantees there is always at least one administrator able to sign in.

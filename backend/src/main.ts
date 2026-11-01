@@ -1,17 +1,14 @@
 /**
  * Apps Script entry point and adapters. Everything Google-specific lives here;
- * the behaviour is in api.ts / auth.ts so it can be tested without Apps Script.
+ * behaviour lives in api.ts and the action modules so it can be tested without
+ * Apps Script.
  *
  * Private configuration comes from Script Properties (never from the repository):
  *   SPREADSHEET_ID, GOOGLE_CLIENT_ID, INITIAL_ADMIN_EMAIL
  */
 import { handleRequest, type BackendResponse } from './api';
-import type { AllowlistEntry, UserStore } from './users';
-
-const USERS_SHEET = 'Users';
-const USERS_HEADER = ['email', 'googleSubject', 'displayName', 'role', 'enabled', 'createdAt'];
-const EMAIL_COLUMN = 0;
-const SUBJECT_COLUMN = 1;
+import { SCHEMA } from './db';
+import type { Row, Spreadsheet } from './spreadsheet';
 
 export function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.Content.TextOutput {
   return json(handleSafely(e.postData?.contents ?? ''));
@@ -26,12 +23,13 @@ function handleSafely(rawBody: string): BackendResponse {
       clientId: requiredProperty(config, 'GOOGLE_CLIENT_ID'),
       initialAdminEmail: config.getProperty('INITIAL_ADMIN_EMAIL') ?? '',
       now: () => new Date(),
+      newId: () => Utilities.getUuid(),
       fetchTokenInfo,
-      users: new SheetUserStore(requiredProperty(config, 'SPREADSHEET_ID')),
+      spreadsheet: new GoogleSpreadsheet(requiredProperty(config, 'SPREADSHEET_ID')),
     });
   } catch (error) {
     console.error(error);
-    return { ok: false, error: 'internal' };
+    return { ok: false, error: 'internal', message: 'Something went wrong. Please try again.' };
   } finally {
     lock.releaseLock();
   }
@@ -57,65 +55,59 @@ function fetchTokenInfo(idToken: string): { status: number; body: string } {
   return { status: response.getResponseCode(), body: response.getContentText() };
 }
 
-/** Allowlist stored in the private spreadsheet's "Users" sheet, one row per user. */
-class SheetUserStore implements UserStore {
-  private readonly sheet: GoogleAppsScript.Spreadsheet.Sheet;
-  private readonly rows: unknown[][];
+/**
+ * The private spreadsheet: one sheet per table, a header row, every cell stored
+ * as plain text. Rows are read once per request and kept in sync on writes.
+ */
+class GoogleSpreadsheet implements Spreadsheet {
+  private readonly file: GoogleAppsScript.Spreadsheet.Spreadsheet;
+  private readonly cache = new Map<string, Row[]>();
 
   constructor(spreadsheetId: string) {
-    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
-    this.sheet = spreadsheet.getSheetByName(USERS_SHEET) ?? createUsersSheet(spreadsheet);
-    this.rows = this.sheet.getDataRange().getValues().slice(1);
+    this.file = SpreadsheetApp.openById(spreadsheetId);
   }
 
-  findByEmail(email: string): AllowlistEntry | undefined {
-    const row = this.rows[this.indexOf(email)];
-    return row && toEntry(row);
+  rows(table: string): Row[] {
+    let rows = this.cache.get(table);
+    if (!rows) {
+      const values = this.sheet(table).getDataRange().getDisplayValues().slice(1);
+      rows = values.map((row) => row.map(String));
+      this.cache.set(table, rows);
+    }
+    return rows.map((row) => [...row]);
   }
 
-  add(entry: AllowlistEntry): void {
-    const row = [
-      entry.email,
-      entry.googleSubject,
-      entry.displayName,
-      entry.role,
-      entry.enabled,
-      entry.createdAt,
-    ];
-    this.sheet.appendRow(row);
-    this.rows.push(row);
+  append(table: string, row: Row): void {
+    const rows = this.rows(table);
+    this.sheet(table).appendRow(row);
+    this.cache.set(table, [...rows, row]);
   }
 
-  recordGoogleSubject(email: string, subject: string): void {
-    const index = this.indexOf(email);
-    if (index < 0) return;
-    this.sheet.getRange(index + 2, SUBJECT_COLUMN + 1).setValue(subject);
-    this.rows[index][SUBJECT_COLUMN] = subject;
+  update(table: string, index: number, row: Row): void {
+    const rows = this.rows(table);
+    this.sheet(table)
+      .getRange(index + 2, 1, 1, row.length)
+      .setValues([row]);
+    rows[index] = row;
+    this.cache.set(table, rows);
   }
 
-  private indexOf(email: string): number {
-    const wanted = email.trim().toLowerCase();
-    return this.rows.findIndex((row) => String(row[EMAIL_COLUMN]).trim().toLowerCase() === wanted);
+  remove(table: string, index: number): void {
+    const rows = this.rows(table);
+    this.sheet(table).deleteRow(index + 2);
+    rows.splice(index, 1);
+    this.cache.set(table, rows);
   }
-}
 
-function createUsersSheet(
-  spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet,
-): GoogleAppsScript.Spreadsheet.Sheet {
-  const sheet = spreadsheet.insertSheet(USERS_SHEET);
-  sheet.appendRow(USERS_HEADER);
-  sheet.setFrozenRows(1);
-  return sheet;
-}
+  private sheet(table: string): GoogleAppsScript.Spreadsheet.Sheet {
+    const existing = this.file.getSheetByName(table);
+    if (existing) return existing;
 
-function toEntry(row: unknown[]): AllowlistEntry {
-  const [email, googleSubject, displayName, role, enabled, createdAt] = row;
-  return {
-    email: String(email).trim().toLowerCase(),
-    googleSubject: String(googleSubject ?? ''),
-    displayName: String(displayName ?? ''),
-    role: role === 'admin' ? 'admin' : 'member',
-    enabled: enabled === true || String(enabled).toUpperCase() === 'TRUE',
-    createdAt: createdAt instanceof Date ? createdAt : new Date(String(createdAt)),
-  };
+    const columns = SCHEMA[table as keyof typeof SCHEMA].columns;
+    const sheet = this.file.insertSheet(table);
+    sheet.getRange(1, 1, sheet.getMaxRows(), columns.length).setNumberFormat('@');
+    sheet.getRange(1, 1, 1, columns.length).setValues([columns]).setFontWeight('bold');
+    sheet.setFrozenRows(1);
+    return sheet;
+  }
 }

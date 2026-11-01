@@ -17,4 +17,9 @@ export default tseslint.config(
     files: ['*.config.{js,ts}', 'backend/build.mjs', 'e2e/**/*.ts'],
     languageOptions: { globals: globals.node },
   },
+  {
+    // Playwright fixtures must destructure their dependencies, even when there are none.
+    files: ['e2e/**/*.ts'],
+    rules: { 'no-empty-pattern': 'off' },
+  },
 );
