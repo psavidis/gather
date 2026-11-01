@@ -50,6 +50,12 @@ function requireStatus(ctx: Context, round: Round, status: RoundStatus, verb: st
 
 /** The administrator's view of a round, including who is eligible. */
 export function roundView(ctx: SignedInContext, round: Round) {
+  const voters = new Set(
+    ctx.db.votes
+      .all()
+      .filter((v) => v.roundId === round.roundId)
+      .map((v) => v.userId),
+  );
   return {
     roundId: round.roundId,
     weekStart: round.weekStart,
@@ -57,7 +63,7 @@ export function roundView(ctx: SignedInContext, round: Round) {
     status: statusOf(round, ctx.now),
     deadline: round.deadline,
     createdAt: round.createdAt,
-    eligible: round.eligible,
+    eligible: round.eligible.map((p) => ({ ...p, voted: voters.has(p.userId) })),
   };
 }
 

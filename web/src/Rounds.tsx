@@ -96,7 +96,20 @@ function ActiveRound({ round, run }: { round: RoundView; run: Run }) {
         <br />
         Deadline: {formatDateTime(round.deadline)}
       </p>
-      {round.status !== 'draft' && <p>{round.eligible.length} eligible participants</p>}
+      {round.status !== 'draft' && (
+        <details>
+          <summary>
+            {round.eligible.filter((p) => p.voted).length} of {round.eligible.length} have voted
+          </summary>
+          <ul aria-label="Participation">
+            {round.eligible.map((p) => (
+              <li key={p.userId}>
+                {p.displayName || p.email} — {p.voted ? 'voted' : 'not voted yet'}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       <div className="actions">
         {round.status === 'draft' && (

@@ -6,6 +6,7 @@ import type { Spreadsheet } from './spreadsheet';
 import { roundActions } from './rounds';
 import { userActions } from './users';
 import { venueActions } from './venues';
+import { voteActions } from './votes';
 
 export interface BackendDeps {
   clientId: string;
@@ -23,6 +24,7 @@ const ACTIONS: Record<string, Action> = {
   ...userActions,
   ...venueActions,
   ...roundActions,
+  ...voteActions,
 };
 
 /**

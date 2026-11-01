@@ -21,7 +21,7 @@ test('the administrator creates, opens, closes and reopens a round', async ({ pa
 
   await round.getByRole('button', { name: 'Open voting' }).click();
   await expect(round).toContainText('Open for voting');
-  await expect(round).toContainText('2 eligible participants');
+  await expect(round).toContainText('0 of 2 have voted');
 
   await round.getByRole('button', { name: 'Close voting' }).click();
   await expect(round).toContainText('Voting closed');
