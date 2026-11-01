@@ -72,8 +72,8 @@ npm run dev                          # http://localhost:5173
 | G   | Browser devtools → Network                                                             | One POST, redirect to `script.googleusercontent.com`, no CORS errors    |
 | H   | Reload and sign in again                                                               | Still admin; the row's `googleSubject` is unchanged                     |
 | I   | Sign in with an account not in the sheet (e.g. a personal Gmail)                      | "Your account is not authorized to use Gather…"                         |
-| J   | Add that Gmail address as a row (`role` = `member`, `enabled` = `TRUE`), sign in again | "Signed in as … with the role member"                                   |
-| K   | Set that row's `enabled` to `FALSE`, sign in again                                     | "not authorized" message                                                |
+| J   | As admin, open _Users_, add that Gmail address as a member; sign in with it again      | "Signed in as … with the role member"                                   |
+| K   | As admin, _Disable_ that user; sign in with it again                                   | "not authorized" message                                                |
 | L   | Try in Safari / a mobile browser                                                       | Same results as F (third-party cookie policies differ between browsers) |
 
 Report which checks passed and the exact error text for any that failed.

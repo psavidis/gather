@@ -18,7 +18,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     env: {
       VITE_GOOGLE_CLIENT_ID: 'e2e-client.apps.googleusercontent.com',
-      VITE_BACKEND_URL: 'https://backend.e2e.test/exec',
+      VITE_BACKEND_URL: 'https://backend.e2e.test/exec', // see e2e/support/fixtures.ts
     },
   },
 });

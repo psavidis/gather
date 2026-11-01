@@ -1,4 +1,6 @@
-import type { Role, UserStore } from './users';
+import type { Context } from './context';
+import type { User } from './db';
+import { AppError } from './errors';
 
 /** Claims of a Google ID token that the backend has verified itself. */
 export interface VerifiedIdentity {
@@ -7,25 +9,23 @@ export interface VerifiedIdentity {
   name: string;
 }
 
-export type SignInResult =
-  | { ok: true; user: { email: string; displayName: string; role: Role } }
-  | { ok: false; error: 'unauthenticated' | 'forbidden' };
+export type FetchTokenInfo = (idToken: string) => { status: number; body: string };
 
 const GOOGLE_ISSUERS = ['accounts.google.com', 'https://accounts.google.com'];
 
 /**
  * Verifies a Google ID token. Google's tokeninfo endpoint checks the signature
  * (Apps Script cannot verify RS256 itself); audience, issuer, expiry and email
- * verification are checked here. Returns undefined for any untrustworthy token.
+ * verification are checked here (assumption A7).
  */
 export function verifyIdToken(
   idToken: string,
   clientId: string,
   now: Date,
-  fetchTokenInfo: (idToken: string) => { status: number; body: string },
-): VerifiedIdentity | undefined {
+  fetchTokenInfo: FetchTokenInfo,
+): VerifiedIdentity {
   const response = fetchTokenInfo(idToken);
-  if (response.status !== 200) return undefined;
+  if (response.status !== 200) throw new AppError('unauthenticated');
 
   const claims = JSON.parse(response.body) as Record<string, string | undefined>;
   const valid =
@@ -35,51 +35,52 @@ export function verifyIdToken(
     claims.email_verified === 'true' &&
     Boolean(claims.sub) &&
     Boolean(claims.email);
+  if (!valid) throw new AppError('unauthenticated');
 
-  return valid
-    ? { subject: claims.sub!, email: claims.email!.toLowerCase(), name: claims.name ?? '' }
-    : undefined;
+  return { subject: claims.sub!, email: claims.email!.toLowerCase(), name: claims.name ?? '' };
 }
 
-/** Authorizes a verified identity against the allowlist (spec §2, assumptions A5–A6). */
+/**
+ * Finds the allowlisted user for a verified identity (spec §2, assumptions A5–A6),
+ * bootstrapping the configured initial administrator and binding the Google account
+ * on first sign-in.
+ */
 export function authorize(
   identity: VerifiedIdentity,
-  users: UserStore,
   initialAdminEmail: string,
-  now: Date,
-): SignInResult {
-  const entry = users.findByEmail(identity.email);
+  ctx: Context,
+): User {
+  const entry = ctx.db.users.find((u) => u.email === identity.email);
 
   if (!entry) {
-    if (!initialAdminEmail || identity.email !== initialAdminEmail.toLowerCase()) {
-      return { ok: false, error: 'forbidden' };
+    if (!initialAdminEmail || identity.email !== initialAdminEmail.trim().toLowerCase()) {
+      throw new AppError('forbidden');
     }
-    users.add({
+    const admin: User = {
+      userId: ctx.newId(),
       email: identity.email,
       googleSubject: identity.subject,
       displayName: identity.name,
       role: 'admin',
       enabled: true,
-      createdAt: now,
-    });
-    return {
-      ok: true,
-      user: { email: identity.email, displayName: identity.name, role: 'admin' },
+      createdAt: ctx.now.toISOString(),
     };
+    ctx.db.users.insert(admin);
+    return admin;
   }
 
-  if (!entry.enabled) return { ok: false, error: 'forbidden' };
+  if (!entry.enabled) throw new AppError('forbidden');
   if (entry.googleSubject && entry.googleSubject !== identity.subject) {
-    return { ok: false, error: 'forbidden' };
+    throw new AppError('forbidden');
   }
-  if (!entry.googleSubject) users.recordGoogleSubject(entry.email, identity.subject);
-
-  return {
-    ok: true,
-    user: {
-      email: entry.email,
+  if (!entry.googleSubject || !entry.displayName) {
+    const bound = {
+      ...entry,
+      googleSubject: identity.subject,
       displayName: entry.displayName || identity.name,
-      role: entry.role,
-    },
-  };
+    };
+    ctx.db.users.replace((u) => u.userId === entry.userId, bound);
+    return bound;
+  }
+  return entry;
 }
