@@ -4,6 +4,7 @@ import { openDb } from './db';
 import { AppError, type ErrorCode, type Payload } from './errors';
 import type { Spreadsheet } from './spreadsheet';
 import { userActions } from './users';
+import { venueActions } from './venues';
 
 export interface BackendDeps {
   clientId: string;
@@ -19,6 +20,7 @@ export type BackendResponse<T = unknown> =
 
 const ACTIONS: Record<string, Action> = {
   ...userActions,
+  ...venueActions,
 };
 
 /**

@@ -569,3 +569,7 @@ The frontend calls the Apps Script web app with `POST` requests whose body is JS
 ### A9 — Administrators cannot lock themselves out (§2)
 
 An administrator cannot disable, remove or remove the administrator role from their own account. Another administrator must do it. This guarantees there is always at least one administrator able to sign in.
+
+### A10 — Adding venues from Google Maps links (§4)
+
+When a pasted Google Maps link contains coordinates or a place name, they pre-fill the venue form. Short share links (`maps.app.goo.gl/…`) cannot be expanded by the browser without a paid or server-side service, so the administrator either pastes the full link from the browser's address bar or places the venue by clicking the map. Every venue must have coordinates so it can appear on the map; the address is optional. Disabled venues stay in the catalog (for history) but are not offered for voting. Venues are never deleted.
