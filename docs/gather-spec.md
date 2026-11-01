@@ -573,3 +573,16 @@ An administrator cannot disable, remove or remove the administrator role from th
 ### A10 — Adding venues from Google Maps links (§4)
 
 When a pasted Google Maps link contains coordinates or a place name, they pre-fill the venue form. Short share links (`maps.app.goo.gl/…`) cannot be expanded by the browser without a paid or server-side service, so the administrator either pastes the full link from the browser's address bar or places the venue by clicking the map. Every venue must have coordinates so it can appear on the map; the address is optional. Disabled venues stay in the catalog (for history) but are not offered for voting. Venues are never deleted.
+
+### A11 — Days of a voting round (§3.1)
+
+A round covers the working days, Monday to Friday, of the chosen week. Choosing any date selects the week containing it. A week that has already ended cannot be chosen.
+
+### A12 — Round lifecycle details (§3.1, §5)
+
+- Creating a round puts it in **Draft** with its week and deadline. A draft can be deleted. Nobody can vote on a draft.
+- **Opening** a draft takes the eligible-participant snapshot (all users enabled at that moment) and starts voting. The deadline must still be in the future.
+- A round is **active** from Draft until it is Published. Only one active round may exist at a time.
+- **Reopening** a closed round requires a new deadline in the future. The snapshot is not retaken.
+- Refinement of A1: automatic closure happens when a participant's **first** submission completes the snapshot. Updates made after a reopen do not close the round again.
+- While voting is open, the administrator can see participation (who has and hasn't voted) but not the answers.

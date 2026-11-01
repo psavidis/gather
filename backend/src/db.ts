@@ -100,10 +100,63 @@ const venueCodec: Codec<Venue> = {
   },
 };
 
+export type StoredRoundStatus = 'draft' | 'open' | 'closed' | 'published';
+
+export interface Participant {
+  userId: string;
+  email: string;
+  displayName: string;
+}
+
+export interface Round {
+  roundId: string;
+  weekStart: string;
+  days: string[];
+  status: StoredRoundStatus;
+  deadline: string;
+  createdBy: string;
+  createdAt: string;
+  eligible: Participant[];
+}
+
+const roundCodec: Codec<Round> = {
+  columns: [
+    'roundId',
+    'weekStart',
+    'days',
+    'status',
+    'deadline',
+    'createdBy',
+    'createdAt',
+    'eligible',
+  ],
+  toRow: (r) => [
+    r.roundId,
+    r.weekStart,
+    JSON.stringify(r.days),
+    r.status,
+    r.deadline,
+    r.createdBy,
+    r.createdAt,
+    JSON.stringify(r.eligible),
+  ],
+  fromRow: ([roundId, weekStart, days, status, deadline, createdBy, createdAt, eligible]) => ({
+    roundId,
+    weekStart,
+    days: JSON.parse(days || '[]') as string[],
+    status: status as StoredRoundStatus,
+    deadline,
+    createdBy,
+    createdAt,
+    eligible: JSON.parse(eligible || '[]') as Participant[],
+  }),
+};
+
 /** Table name → codec; also defines each sheet's header row. */
 export const SCHEMA = {
   Users: userCodec,
   Venues: venueCodec,
+  Rounds: roundCodec,
 } as const;
 
 export type Db = ReturnType<typeof openDb>;
@@ -112,5 +165,6 @@ export function openDb(sheet: Spreadsheet) {
   return {
     users: new Table(sheet, 'Users', SCHEMA.Users),
     venues: new Table(sheet, 'Venues', SCHEMA.Venues),
+    rounds: new Table(sheet, 'Rounds', SCHEMA.Rounds),
   };
 }
