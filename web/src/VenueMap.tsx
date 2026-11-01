@@ -1,8 +1,7 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useRef } from 'react';
-import type { Venue } from '../../backend/src/db';
-import { directionsUrl, summary } from './venues-display';
+import { directionsUrl, summary, type MapVenue } from './venues-display';
 
 export interface LatLng {
   latitude: number;
@@ -10,7 +9,7 @@ export interface LatLng {
 }
 
 interface Props {
-  venues: Venue[];
+  venues: MapVenue[];
   selected?: ReadonlySet<string>;
   onToggle?: (venueId: string) => void;
   picked?: LatLng;
@@ -63,7 +62,7 @@ export function VenueMap({ venues, selected, onToggle, picked, onPick }: Props) 
         radius: isSelected ? 10 : 8,
         color: '#ffffff',
         weight: 2,
-        fillColor: !venue.enabled ? '#8c959f' : isSelected ? '#1a7f37' : '#0b6bcb',
+        fillColor: venue.enabled === false ? '#8c959f' : isSelected ? '#1a7f37' : '#0b6bcb',
         fillOpacity: 0.95,
       })
         .bindTooltip(venue.name)
@@ -84,7 +83,7 @@ export function VenueMap({ venues, selected, onToggle, picked, onPick }: Props) 
 }
 
 /** Popup content built from DOM nodes so venue text is never interpreted as HTML. */
-function popup(venue: Venue, isSelected: boolean, onToggle?: (venueId: string) => void) {
+function popup(venue: MapVenue, isSelected: boolean, onToggle?: (venueId: string) => void) {
   const root = document.createElement('div');
   const add = (tag: string, content: string) => {
     const element = document.createElement(tag);
@@ -93,7 +92,7 @@ function popup(venue: Venue, isSelected: boolean, onToggle?: (venueId: string) =
     return element;
   };
   add('strong', venue.name);
-  add('div', summary(venue));
+  if (summary(venue)) add('div', summary(venue));
   if (venue.address) add('div', venue.address);
   if (venue.notes) add('div', venue.notes).className = 'muted';
   const links = add('div', '');

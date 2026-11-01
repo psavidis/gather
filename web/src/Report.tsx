@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import type { Report as ReportData } from '../../backend/src/report';
 import { formatDay } from './format';
+import { PublishForm } from './PublishForm';
 import { ACTIVITY_LABELS, LOCATION_LABELS } from './labels';
 import { counts, reportText, weekLabel } from './report-text';
 import { href } from './router';
@@ -165,6 +166,8 @@ export function Report({ roundId }: { roundId: string }) {
           </li>
         ))}
       </ol>
+
+      {report.status === 'closed' && <PublishForm report={report} />}
 
       <h3>Share</h3>
       <div className="actions">

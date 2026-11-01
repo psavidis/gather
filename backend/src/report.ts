@@ -202,11 +202,18 @@ function timeWindow(payload: Payload): { start: string; end: string } | undefine
   return { start, end };
 }
 
-export function buildReport(round: Round, votes: Vote[], venues: Venue[], payload: Payload) {
+export function buildReport(
+  round: Round,
+  status: 'closed' | 'published',
+  votes: Vote[],
+  venues: Venue[],
+  payload: Payload,
+) {
   const window = timeWindow(payload);
   const summary = participation(round, votes);
   return {
     roundId: round.roundId,
+    status,
     days: round.days,
     participation: summary,
     availability: availability(round, votes, summary.missing),
@@ -235,7 +242,7 @@ export const reportActions: Record<string, Action> = {
         .all()
         .filter((v) => v.roundId === round.roundId && eligible.has(v.userId));
       const venues = ctx.db.venues.all().filter((v) => v.enabled);
-      return buildReport(round, votes, venues, payload);
+      return buildReport(round, status, votes, venues, payload);
     },
   },
 };
