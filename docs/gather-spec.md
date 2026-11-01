@@ -599,3 +599,10 @@ Candidates are every combination of a round day, a time (18:30 or 21:00) and an 
 **Score = 3 × available + 1 × flexible + 2 × venue picks + 1 × activity matches.**
 
 Candidates with nobody available or flexible are dropped. Ties are broken by more available participants, then the earlier date, the earlier time, and the venue name. The report shows the top 10, each with its score breakdown. Location preferences cannot be matched to venues (venues have no area), so the report shows them as context only.
+
+### A14 — Publishing details (§7, §8)
+
+- The final date must be one of the round's days. The time is free (18:30 and 21:00 are offered first). The venue must be an enabled catalog venue.
+- The optional participant count shown on the public page is entered by the administrator. It is pre-filled with the number of people available at the chosen date and time.
+- The public page keeps a copy of the venue's public details as they were when the event was published, so later catalog edits do not rewrite history.
+- The title defaults to "Team outing".

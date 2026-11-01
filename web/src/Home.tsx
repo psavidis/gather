@@ -1,17 +1,23 @@
 import { useEffect, useState } from 'react';
+import type { EventSummary } from '../../backend/src/events';
 import type { CurrentRound } from '../../backend/src/votes';
-import { formatDateTime, formatDay } from './format';
+import { formatDateTime, formatDay, formatLongDay } from './format';
 import { href } from './router';
 import { useSession } from './session';
 
 export function Home() {
   const { call, user } = useSession();
   const [round, setRound] = useState<CurrentRound | null>();
+  const [nextOuting, setNextOuting] = useState<EventSummary>();
   const [problem, setProblem] = useState<string>();
 
   useEffect(() => {
     call<CurrentRound | null>('getCurrentRound').then(setRound, (e: Error) =>
       setProblem(e.message),
+    );
+    call<EventSummary[]>('listPublicEvents').then(
+      (events) => setNextOuting(events.filter((e) => e.status === 'upcoming').at(-1)),
+      () => undefined, // The outing teaser is optional; the round card reports failures.
     );
   }, [call]);
 
@@ -20,6 +26,15 @@ export function Home() {
       <p className="muted">
         Signed in as <strong>{user.email}</strong> with the role <strong>{user.role}</strong>.
       </p>
+      {nextOuting && (
+        <p>
+          Next outing:{' '}
+          <a href={href('events', nextOuting.eventId)}>
+            {nextOuting.title} — {formatLongDay(nextOuting.date)} at {nextOuting.time},{' '}
+            {nextOuting.venueName}
+          </a>
+        </p>
+      )}
       {problem && <p role="alert">{problem}</p>}
       {round === null && <p>There is no voting round open right now.</p>}
       {round && <RoundCard round={round} />}

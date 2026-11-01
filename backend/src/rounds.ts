@@ -64,6 +64,7 @@ export function roundView(ctx: SignedInContext, round: Round) {
     deadline: round.deadline,
     createdAt: round.createdAt,
     eligible: round.eligible.map((p) => ({ ...p, voted: voters.has(p.userId) })),
+    eventId: ctx.db.events.find((e) => e.roundId === round.roundId)?.eventId ?? null,
   };
 }
 

@@ -43,6 +43,7 @@ export function Rounds() {
       {!rounds && !problem && <p>Loading…</p>}
       {rounds && !active && <CreateRound run={run} />}
       {active && <ActiveRound round={active} run={run} />}
+      {rounds && <PastRounds rounds={rounds.filter((r) => r.status === 'published')} />}
     </section>
   );
 }
@@ -156,5 +157,25 @@ function ActiveRound({ round, run }: { round: RoundView; run: Run }) {
         </form>
       )}
     </article>
+  );
+}
+
+function PastRounds({ rounds }: { rounds: RoundView[] }) {
+  if (rounds.length === 0) return null;
+  return (
+    <>
+      <h3>Published rounds</h3>
+      <ul className="cards" aria-label="Published rounds">
+        {rounds.map((round) => (
+          <li key={round.roundId}>
+            Week of {formatDay(round.days[0])}
+            <div className="actions">
+              {round.eventId && <a href={href('events', round.eventId)}>Event page</a>}
+              <a href={href('admin', 'rounds', round.roundId, 'report')}>Results</a>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }

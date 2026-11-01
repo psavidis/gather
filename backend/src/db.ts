@@ -220,12 +220,86 @@ const voteCodec: Codec<Vote> = {
   },
 };
 
+/** The venue's public details, copied at publication so history is never rewritten. */
+export interface PublicVenue {
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  googleMapsUrl: string;
+}
+
+export interface OutingEvent {
+  eventId: string;
+  roundId: string;
+  title: string;
+  date: string;
+  time: string;
+  venueId: string;
+  venue: PublicVenue;
+  alternative: string;
+  notes: string;
+  participantCount: number | null;
+  publishedAt: string;
+  publishedBy: string;
+}
+
+const eventCodec: Codec<OutingEvent> = {
+  columns: [
+    'eventId',
+    'roundId',
+    'title',
+    'date',
+    'time',
+    'venueId',
+    'venue',
+    'alternative',
+    'notes',
+    'participantCount',
+    'publishedAt',
+    'publishedBy',
+  ],
+  toRow: (e) => [
+    e.eventId,
+    e.roundId,
+    e.title,
+    e.date,
+    e.time,
+    e.venueId,
+    JSON.stringify(e.venue),
+    e.alternative,
+    e.notes,
+    e.participantCount === null ? '' : String(e.participantCount),
+    e.publishedAt,
+    e.publishedBy,
+  ],
+  fromRow: (row) => {
+    const [eventId, roundId, title, date, time, venueId, venue, alternative] = row;
+    const [notes, participantCount, publishedAt, publishedBy] = row.slice(8);
+    return {
+      eventId,
+      roundId,
+      title,
+      date,
+      time,
+      venueId,
+      venue: JSON.parse(venue) as PublicVenue,
+      alternative,
+      notes,
+      participantCount: participantCount ? Number(participantCount) : null,
+      publishedAt,
+      publishedBy,
+    };
+  },
+};
+
 /** Table name → codec; also defines each sheet's header row. */
 export const SCHEMA = {
   Users: userCodec,
   Venues: venueCodec,
   Rounds: roundCodec,
   Votes: voteCodec,
+  Events: eventCodec,
 } as const;
 
 export type Db = ReturnType<typeof openDb>;
@@ -236,5 +310,6 @@ export function openDb(sheet: Spreadsheet) {
     venues: new Table(sheet, 'Venues', SCHEMA.Venues),
     rounds: new Table(sheet, 'Rounds', SCHEMA.Rounds),
     votes: new Table(sheet, 'Votes', SCHEMA.Votes),
+    events: new Table(sheet, 'Events', SCHEMA.Events),
   };
 }
