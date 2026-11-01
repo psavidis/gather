@@ -1,6 +1,6 @@
 # Team Outing Coordinator
 
-**Product specification — Version 1.1**
+**Product specification — Version 1.2**
 
 ## 1. Overview
 
@@ -523,3 +523,45 @@ The model should preserve historical records. Disabling or removing a user must 
 - **Human decision-making:** the administrator makes the final choice.
 - **Historical continuity:** published outings become permanent, shareable artifacts of the team's history.
 - **Avoid overengineering:** build only what the weekly coordination workflow actually needs.
+## 15. Recorded assumptions
+
+These resolve ambiguities in the sections above. Each one stands until the product owner changes it; the feature files under `features/` encode them.
+
+### A1 — Automatic closure when everyone has voted (§3.2, §5)
+
+Voting closes automatically as soon as every participant in the eligible snapshot has submitted, exactly as §5 states, even if the deadline has not passed. After that, nobody can change their vote unless the administrator reopens voting. Reopening restores the ability to update votes until the round closes again.
+
+### A2 — Custom availability window (§6)
+
+Participants only state an arrival time (18:30 or 21:00), not a leaving time. For a custom window such as 19:00–22:00, the report shows:
+
+- **Available from the start** — participants whose arrival time is at or before the window's start.
+- **Joining later** — participants whose arrival time falls inside the window, with that time.
+- **No preference** — participants who chose No preference / Flexible for that day, shown separately and never merged into the counts above.
+- **Unavailable** and **missing responses** — shown separately.
+
+Participants are assumed to stay until the end of any window they can arrive for.
+
+### A3 — Published versus Archived (§5, §8)
+
+Archived is not a separate administrator action. A published event appears in the public archive immediately and is shown as **upcoming** until its date has passed, then as **past** (the Archived state). Both are read-only.
+
+### A4 — Deadline enforcement (§5)
+
+A round whose deadline has passed is treated as closed by every backend operation, whether or not a background job has run. Apps Script time-driven triggers may be added for convenience but correctness must not depend on them.
+
+### A5 — Initial administrator bootstrap (§2)
+
+The initial administrator's email is set in private Apps Script configuration. When that person first signs in and has no row in the Users sheet, the backend creates an enabled administrator row for them. After that, the Users sheet is the single source of truth: if that row is later disabled or demoted, the configuration does not override it.
+
+### A6 — Identity binding (§2, §10)
+
+Allowlist entries are matched by verified email address, case-insensitively. On first successful sign-in, the backend records the user's Google subject identifier. If a later sign-in presents the same email with a different subject identifier (for example, a deleted and re-created Google account), access is refused until an administrator resets the entry.
+
+### A7 — Token verification in Apps Script (§10)
+
+Apps Script cannot verify RS256 signatures natively. The backend sends the ID token to Google's `tokeninfo` endpoint (which validates the signature) and then itself checks the audience, issuer, expiry and that the email is verified. Unverified emails are refused.
+
+### A8 — Browser-to-backend transport (§10)
+
+The frontend calls the Apps Script web app with `POST` requests whose body is JSON sent as `text/plain`, with the ID token inside the body. This avoids a CORS preflight, which Apps Script cannot answer. Apps Script always responds with HTTP 200, so success and failure are expressed in the JSON body. This must be confirmed by the proof of concept in a real deployment.
