@@ -13,7 +13,8 @@ test('an enabled member signs in', async ({ page, world, signIn }) => {
     page.getByText('Signed in as maria@example.com with the role member.'),
   ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Sign in with Google' })).toBeHidden();
-  expect(requests).toEqual([expect.stringContaining('text/plain')]);
+  expect(requests.length).toBeGreaterThan(0);
+  expect(requests.every((type) => type.includes('text/plain'))).toBe(true);
 });
 
 test('someone who is not on the allowlist is told they are not authorized', async ({

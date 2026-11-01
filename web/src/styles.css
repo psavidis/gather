@@ -190,3 +190,57 @@ label {
   font-size: 0.85rem;
   color: var(--muted);
 }
+
+a.button {
+  display: inline-block;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+a.button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+fieldset {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+}
+
+legend {
+  font-weight: 600;
+  padding: 0 0.25rem;
+}
+
+.choices {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.choices label,
+label.check {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wizard-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.summary dt {
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.summary dd {
+  margin: 0;
+}

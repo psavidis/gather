@@ -1,8 +1,11 @@
+import { Home } from './Home';
 import { href, useRoute } from './router';
+import { Rounds } from './Rounds';
 import { SessionProvider, useSessionState } from './session';
 import { SignIn } from './SignIn';
 import { Users } from './Users';
 import { Venues } from './Venues';
+import { Vote } from './Vote';
 
 export function App() {
   return (
@@ -26,6 +29,7 @@ function Shell() {
           <nav aria-label="Main">
             {session.user.role === 'admin' && (
               <>
+                <a href={href('admin', 'rounds')}>Rounds</a>
                 <a href={href('admin', 'users')}>Users</a>
                 <a href={href('admin', 'venues')}>Venues</a>
               </>
@@ -46,15 +50,11 @@ function SignedInPage({ route }: { route: string[] }) {
   const user = session!.user;
 
   if (route[0] === 'admin' && user.role === 'admin') {
+    if (route[1] === 'rounds') return <Rounds />;
     if (route[1] === 'users') return <Users />;
     if (route[1] === 'venues') return <Venues />;
   }
 
-  return (
-    <section>
-      <p>
-        Signed in as <strong>{user.email}</strong> with the role <strong>{user.role}</strong>.
-      </p>
-    </section>
-  );
+  if (route[0] === 'vote') return <Vote />;
+  return <Home />;
 }
