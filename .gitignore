@@ -1,0 +1,20 @@
+# Dependencies and build output
+node_modules/
+dist/
+
+# Test output
+coverage/
+test-results/
+playwright-report/
+
+# Local environment and private configuration
+.env
+.env.*
+!.env.example
+.clasp.json
+.clasprc.json
+
+# IDE and OS files
+.idea/
+*.iml
+.DS_Store

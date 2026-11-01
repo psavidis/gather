@@ -30,7 +30,7 @@ Before changing code:
 
 Do not assume a framework, library, architecture, or command is present. Verify it in the repository.
 
-For product requirements, consult the relevant specification. For Gather, the product specification is expected at `docs/product/gather-spec.md`.
+For product requirements, consult the relevant specification. For Gather, the product specification is expected at `docs/gather-spec.md`.
 
 If a requirement conflicts with an existing specification, identify the conflict rather than silently choosing one. Do not silently expand scope.
 
