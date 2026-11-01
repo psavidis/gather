@@ -2,6 +2,7 @@ import { href, useRoute } from './router';
 import { SessionProvider, useSessionState } from './session';
 import { SignIn } from './SignIn';
 import { Users } from './Users';
+import { Venues } from './Venues';
 
 export function App() {
   return (
@@ -23,7 +24,12 @@ function Shell() {
         </a>
         {session && (
           <nav aria-label="Main">
-            {session.user.role === 'admin' && <a href={href('admin', 'users')}>Users</a>}
+            {session.user.role === 'admin' && (
+              <>
+                <a href={href('admin', 'users')}>Users</a>
+                <a href={href('admin', 'venues')}>Venues</a>
+              </>
+            )}
             <button className="link" onClick={session.signOut}>
               Sign out
             </button>
@@ -39,7 +45,10 @@ function SignedInPage({ route }: { route: string[] }) {
   const { session } = useSessionState();
   const user = session!.user;
 
-  if (route[0] === 'admin' && user.role === 'admin' && route[1] === 'users') return <Users />;
+  if (route[0] === 'admin' && user.role === 'admin') {
+    if (route[1] === 'users') return <Users />;
+    if (route[1] === 'venues') return <Venues />;
+  }
 
   return (
     <section>

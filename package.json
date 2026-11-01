@@ -17,6 +17,7 @@
     "deploy:backend": "node backend/build.mjs && npx @google/clasp push --force"
   },
   "dependencies": {
+    "leaflet": "^1.9.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
@@ -24,6 +25,7 @@
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
     "@types/google-apps-script": "^2.0.14",
+    "@types/leaflet": "^1.9.22",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

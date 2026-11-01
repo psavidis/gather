@@ -40,3 +40,26 @@ export function flag(payload: Payload, field: string): boolean {
   if (typeof value !== 'boolean') throw new AppError('invalid', `${field} must be true or false`);
   return value;
 }
+
+export function numberIn(payload: Payload, field: string, min: number, max: number): number {
+  const value = payload[field];
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new AppError('invalid', `${field} must be a number`);
+  }
+  if (value < min || value > max) {
+    throw new AppError('invalid', `${field} must be between ${min} and ${max}`);
+  }
+  return value;
+}
+
+export function optionalNumberIn(
+  payload: Payload,
+  field: string,
+  min: number,
+  max: number,
+): number | null {
+  const value = payload[field];
+  return value === undefined || value === null || value === ''
+    ? null
+    : numberIn(payload, field, min, max);
+}
