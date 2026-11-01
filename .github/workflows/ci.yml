@@ -28,3 +28,40 @@ jobs:
           name: playwright-report
           path: playwright-report
           retention-days: 7
+
+  deploy:
+    # Publishes the frontend to GitHub Pages after the checks pass on main.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      VITE_GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+      VITE_BACKEND_URL: ${{ vars.BACKEND_URL }}
+      VITE_BASE_PATH: /${{ github.event.repository.name }}/
+    steps:
+      - name: Require public configuration
+        run: |
+          if [ -z "$VITE_GOOGLE_CLIENT_ID" ] || [ -z "$VITE_BACKEND_URL" ]; then
+            echo "::error::Set the GOOGLE_CLIENT_ID and BACKEND_URL repository variables (see README)."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx vite build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/web
+      - id: deployment
+        uses: actions/deploy-pages@v4
