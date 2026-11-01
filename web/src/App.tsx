@@ -1,5 +1,6 @@
 import { Home } from './Home';
 import { href, useRoute } from './router';
+import { Report } from './Report';
 import { Rounds } from './Rounds';
 import { SessionProvider, useSessionState } from './session';
 import { SignIn } from './SignIn';
@@ -50,6 +51,7 @@ function SignedInPage({ route }: { route: string[] }) {
   const user = session!.user;
 
   if (route[0] === 'admin' && user.role === 'admin') {
+    if (route[1] === 'rounds' && route[3] === 'report') return <Report roundId={route[2]} />;
     if (route[1] === 'rounds') return <Rounds />;
     if (route[1] === 'users') return <Users />;
     if (route[1] === 'venues') return <Venues />;
