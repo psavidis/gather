@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import type { RoundView } from '../../backend/src/rounds';
 import { formatDateTime, formatDay, localInputToIso } from './format';
+import { href } from './router';
 import { useSession } from './session';
 
 const STATUS_LABELS: Record<RoundView['status'], string> = {
@@ -126,6 +127,14 @@ function ActiveRound({ round, run }: { round: RoundView; run: Run }) {
           <button onClick={() => void run('closeRound', { roundId })}>Close voting</button>
         )}
       </div>
+
+      {round.status === 'closed' && (
+        <p>
+          <a className="button primary" href={href('admin', 'rounds', roundId, 'report')}>
+            View results
+          </a>
+        </p>
+      )}
 
       {round.status === 'closed' && (
         <form

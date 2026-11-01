@@ -586,3 +586,16 @@ A round covers the working days, Monday to Friday, of the chosen week. Choosing 
 - **Reopening** a closed round requires a new deadline in the future. The snapshot is not retaken.
 - Refinement of A1: automatic closure happens when a participant's **first** submission completes the snapshot. Updates made after a reopen do not close the round again.
 - While voting is open, the administrator can see participation (who has and hasn't voted) but not the answers.
+
+### A13 — Recommendation scoring (§6)
+
+Candidates are every combination of a round day, a time (18:30 or 21:00) and an enabled venue. If the catalog has no venues, candidates are date and time only. For each candidate, only participants who submitted a vote are considered. Missing responses never count.
+
+- **Available** — participants whose arrival time on that day is at or before the candidate time (18:30 counts for both times; 21:00 counts only for 21:00).
+- **Flexible** — participants who chose No preference for that day.
+- **Venue picks** — available or flexible participants who selected that venue.
+- **Activity matches** — available or flexible participants whose activity preference suits the venue category: Drinks → bar, pub, cafe; Food → restaurant, pub, cafe; Both → restaurant, pub. No preference and "other" venues never match.
+
+**Score = 3 × available + 1 × flexible + 2 × venue picks + 1 × activity matches.**
+
+Candidates with nobody available or flexible are dropped. Ties are broken by more available participants, then the earlier date, the earlier time, and the venue name. The report shows the top 10, each with its score breakdown. Location preferences cannot be matched to venues (venues have no area), so the report shows them as context only.

@@ -3,6 +3,7 @@ import type { Action, Context } from './context';
 import { openDb } from './db';
 import { AppError, type ErrorCode, type Payload } from './errors';
 import type { Spreadsheet } from './spreadsheet';
+import { reportActions } from './report';
 import { roundActions } from './rounds';
 import { userActions } from './users';
 import { venueActions } from './venues';
@@ -25,6 +26,7 @@ const ACTIONS: Record<string, Action> = {
   ...venueActions,
   ...roundActions,
   ...voteActions,
+  ...reportActions,
 };
 
 /**
